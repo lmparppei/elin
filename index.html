@@ -5,6 +5,7 @@
 		<meta charset="utf-8">
 
 		<meta name="viewport" content="width=device-width, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+		<meta property="og:image" content="http://www.kapitan.fi/elin/elin.jpg" />
 		<link href="https://fonts.googleapis.com/css?family=Inconsolata:400,700" rel="stylesheet">
 		<style>
 			body {
@@ -22,6 +23,7 @@
 				bottom: 2em; left: 2em;
 			}
 
+			h1 { font-size: 1em; margin: 0 0 1em 0; font-weight: 400; }
 			a {
 				color: #a06851;
 			}
@@ -29,15 +31,16 @@
 		</style>
 	</head>
 	<body>
-
 		<div id="container"></div>
 
+		<script src="js/perfPolyfill.js"></script>
 		<script src="js/three.min.js"></script>
 		<script src="js/OrbitControls.js"></script>
 		<script src="js/Elin.js"></script>
 		<div id='info'>
-			<b>ELIN</b> ATONAL 3D SYTH EXPERIMENT<br><br>
-			Use mouse buttons to mold and wheel to zoom. Grab outside the clay to look around.<br>
+			<h1><b>ELIN</b> ATONAL 3D SYNTH EXPERIMENT</h1>
+			Push mouse buttons and move to mold.<br>
+			Scroll wheel to zoom. Grab outside the organ to look around.<br><br>
 			Lauri-Matti Parppei 2016
 		</div>
 	</body>
