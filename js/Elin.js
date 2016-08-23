@@ -1,3 +1,6 @@
+var size = 600;
+var radius = size / 2;
+
 var container, stats;
 
 var camera, controls, scene, renderer;
@@ -37,6 +40,7 @@ function Synth(mesh) {
 		
 		osc.filter = audio.createBiquadFilter();
 		osc.filter.type = 'bandpass';
+		osc.pan = audio.createStereoPanner();
 		
 		//osc.filter.frequency = 1000;
 
@@ -44,7 +48,9 @@ function Synth(mesh) {
 
 		gain.connect(audio.destination);
 		osc.connect(osc.filter);
-		osc.filter.connect(gain);
+		osc.filter.connect(osc.pan);
+		osc.pan.connect(gain);
+		osc.gain = gain;
 
 		gain.gain.value = 0;
 
@@ -69,7 +75,7 @@ function Synth(mesh) {
 		this.oscillators[num].frequency.value = this.oscillators[num].baseFrequency + 16.35 * Math.pow( Math.pow(2, 1/12), tone );
 		
 		gain = gain * .05;
-		if (gain < .25) { this.gains[num].gain.value = gain; } else { this.gains[num].gain.value = .19; }
+		if (gain < .25) { this.gains[num].gain.value = gain; } else { this.gains[num].gain.value = .25; }
 	}
 }
 
@@ -88,7 +94,7 @@ function init() {
 
 	camera.position.z = 1000;
 
-	var geometry = new THREE.BoxGeometry(600,600,600,6,6,6);
+	var geometry = new THREE.BoxGeometry(size, size, size, 6, 6, 6);
 	
 	for (var i in geometry.vertices) {
         var vertex = geometry.vertices[i];
@@ -173,6 +179,20 @@ function onWindowResize() {
 
 }
 
+function leftOrRight(vect) {
+	var indicatorTarget = vect;
+	var crossprod = new THREE.Vector3( 0, 0, 0 );
+	var direction = 0;
+
+	crossprod.crossVectors(controls.target, indicatorTarget);
+
+	direction = crossprod.dot(camera.up);
+
+	if (direction > 0) return -1;
+	else if (direction < 0) return 1;
+	else return 0;
+}
+
 function animate() {
 
 	requestAnimationFrame( animate );
@@ -186,15 +206,24 @@ function animate() {
 
 	for (v in mesh.geometry.vertices) {
 		var vertex = mesh.geometry.vertices[v];
-		var dist = vertex.distanceTo(scene.position) * 0.005;
+		var dist = vertex.distanceTo(scene.position);
+
+		var pan = vertex.x / 1000;
+		var modAmount = dist / size * 1.333;
 
 		animVertex.copy(vertex);
-		animVertex.setLength((Math.sin(theta + vertex.mod * 30) * .1) * dist);
+		animVertex.setLength((Math.sin(theta + vertex.mod * 30) * .1) * (dist * 0.005));
 
 		vertex.add(animVertex);
 
-		synth.gains[v].gain.value += Math.sin(theta + vertex.mod * .2) * .0005;
-		if (synth.oscillators[v].frequency.value > 10) { synth.oscillators[v].frequency.value += Math.sin((theta + vertex.mod)) * .1; }
+		synth.oscillators[v].gain.gain.value += Math.sin(theta + vertex.mod * .2) * .0005;
+		synth.oscillators[v].pan.pan.value = pan;
+		//synth.oscillators[v].pan.pan.value = leftOrRight(vertex);
+		
+		// Modulation
+		if (synth.oscillators[v].frequency.value > 10) {
+			synth.oscillators[v].frequency.value += Math.sin((theta + vertex.mod + modAmount * 10)) * (.1 * modAmount); 
+		}
 	}
 	mesh.geometry.verticesNeedUpdate = true;
 }
@@ -218,12 +247,9 @@ function onMouseMove( event ) {
 	mouse.y = - ( event.clientY / renderer.domElement.clientHeight ) * 2 + 1;
 	raycaster.setFromCamera( mouse, camera );
 
-	// See if the ray from the camera into the world hits one of our meshes
 	var intersects = raycaster.intersectObject( mesh );
 
-	// Toggle rotation bool for meshes that we clicked
 	if ( intersects.length > 0 ) {
-
 		helper.position.set( 0, 0, 0 );
 		helper.lookAt( intersects[ 0 ].face.normal );
 
