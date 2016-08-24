@@ -8,7 +8,7 @@ var camera, controls, scene, renderer;
 var mesh, texture;
 
 var clock = new THREE.Clock();
-var theta; 
+var theta = 0; 
 
 var helper;
 
@@ -168,6 +168,36 @@ function init() {
 
 	window.addEventListener( 'resize', onWindowResize, false );
 
+	window.setInterval(function() {
+		theta += 0.002; 
+
+		for (v in mesh.geometry.vertices) {
+			var vertex = mesh.geometry.vertices[v];
+			var dist = vertex.distanceTo(scene.position);
+
+			var pan = vertex.x / 1000;
+			var modAmount = dist / size * 1.333;
+
+			animVertex.copy(vertex);
+			animVertex.setLength(
+				//(Math.sin(theta + vertex.mod * 30) * .1) * (dist * 0.005)
+				(Math.sin(theta * 60 + vertex.mod * 30) * .3) * (dist * 0.005)
+			);
+
+			//if (mouse.down) { console.log('before: ' + vertex.length()); }
+			vertex.add(animVertex);
+
+			synth.oscillators[v].gain.gain.value += Math.sin(theta * 20 + vertex.mod * .2) * .005;
+			synth.oscillators[v].pan.pan.value = pan;
+			//synth.oscillators[v].pan.pan.value = leftOrRight(vertex);
+			
+			// Modulation
+			if (synth.oscillators[v].frequency.value > 10) {
+				synth.oscillators[v].frequency.value += Math.sin((theta * 30 + vertex.mod + modAmount * 10)) * (.1 * modAmount); 
+			}
+		}
+		mesh.geometry.verticesNeedUpdate = true;
+	}, 33.33);
 }
 
 function onWindowResize() {
@@ -196,36 +226,12 @@ function leftOrRight(vect) {
 function animate() {
 
 	requestAnimationFrame( animate );
+	render();
 
 	//mesh.rotation.y += .005;
-	theta = clock.getElapsedTime();
+	//theta += clock.getDelta();
 
-	render();
 	if (stats) { stats.update(); }
-
-
-	for (v in mesh.geometry.vertices) {
-		var vertex = mesh.geometry.vertices[v];
-		var dist = vertex.distanceTo(scene.position);
-
-		var pan = vertex.x / 1000;
-		var modAmount = dist / size * 1.333;
-
-		animVertex.copy(vertex);
-		animVertex.setLength((Math.sin(theta + vertex.mod * 30) * .1) * (dist * 0.005));
-
-		vertex.add(animVertex);
-
-		synth.oscillators[v].gain.gain.value += Math.sin(theta + vertex.mod * .2) * .0005;
-		synth.oscillators[v].pan.pan.value = pan;
-		//synth.oscillators[v].pan.pan.value = leftOrRight(vertex);
-		
-		// Modulation
-		if (synth.oscillators[v].frequency.value > 10) {
-			synth.oscillators[v].frequency.value += Math.sin((theta + vertex.mod + modAmount * 10)) * (.1 * modAmount); 
-		}
-	}
-	mesh.geometry.verticesNeedUpdate = true;
 }
 
 function render() {
