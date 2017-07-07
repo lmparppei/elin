@@ -8,8 +8,9 @@ Code is sort of a mess as this was done quickly for my own purposes. Feel free t
 Live version:
 http://kapitan.fi/elin/
 
-Selected to Chrome Experiments showcase
+Selected to Chrome Experiments showcase:
 https://www.chromeexperiments.com/experiment/elin
 
 © Lauri-Matti Parppei 2017
+
 Released under the MIT License
